@@ -12,6 +12,7 @@ blobs = []
 game = ab.Game(title="Blob Game", size=[1000, 900])
 player = ab.sprite.Ellipse(game, [0, 0], [50, 50], color=ab.color.RASPBERRY)
 points = 0
+game_over = False
 score = ab.sprite.Text(game, [10, 10], f"Score: {points}", color=ab.color.RASPBERRY)
 center = [game.size[0] / 2 - player.width, game.size[1] / 2 - player.height]
 player.go_to(center)
@@ -28,22 +29,24 @@ def move(keys):
     score.text = f"Score: {int(points)}"
 
 def if_touching(e):
-    global points, player
+    global points, player, game_over
     touching = player.touching_any(blobs)
     if len(touching) > 0:
         for blob in touching:
+            if game_over:
+                game.wait(2000)
+                game.reset()
+                score = ab.sprite.Text(game, [10, 10], f"Score: {int(points)}", color=ab.color.MAROON)
+                ab.sprite.Text(game, pos=[1000 / 2 - 190, 900 / 2 - 70], text="Game Over", fontsize=100, color=ab.color.MAROON)
             if blob.width < player.width:
                 player.height += blob.height / 10
                 player.width += blob.width / 10
                 points += blob.width / 10
                 blobs.remove(blob)
                 blob.kill()
-            elif blob.width > player.width:
+            elif blob.width > player.width and not game_over:
                 player.kill()
-                game.wait(500)
-                game.reset()
-                score = ab.sprite.Text(game, [10, 10], f"Score: {int(points)}", color=ab.color.MAROON)
-                ab.sprite.Text(game, pos=[1000 / 2 - 190, 900 / 2 - 70], text="Game Over", fontsize=100, color=ab.color.MAROON)
+                game_over = True
     if player.width >= 300:
         zoom_out()
 
